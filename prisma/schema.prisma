@@ -13,7 +13,48 @@ datasource db {
   provider = "postgresql"
 }
 
+// we have autoIncrement ids, and uuid
 model User {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  id             String          @id @default(uuid())
+  age            Int
+  name           String
+  role           Role            @default(USER)
+  email          String          @unique
+  isAdmin        Boolean
+  posts          Post[]          @relation("posts")
+  favoritePosts  Post[]          @relation("favorite posts")
+  userPreference UserPreference?
+
+  @@index([email, name])
+}
+
+model UserPreference {
+  id           String  @id @default(uuid())
+  emailUpdates Boolean
+  user         User    @relation(fields: [userId], references: [id])
+  userId       String  @unique
+}
+
+model Post {
+  id            String     @id @default(uuid())
+  title         String
+  averageRating Float
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  author        User       @relation("posts", fields: [userId], references: [id])
+  userId        String
+  favoriteBy    User?      @relation("favorite posts", fields: [favoriteById], references: [id])
+  favoriteById  String?
+  categories    Category[]
+}
+
+model Category {
+  id    String @id @default(uuid())
+  name  String
+  posts Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
 }
